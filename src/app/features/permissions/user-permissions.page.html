@@ -1,0 +1,199 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>User Permissions</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (!isLoading) {
+      <div class="table-actions">
+        <mat-form-field appearance="outline">
+          <mat-label>Filter users</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by name, email, role" />
+        </mat-form-field>
+      </div>
+    }
+
+    @if (error && !isLoading) {
+      <div class="error-state mat-elevation-z1">
+        <mat-icon>error_outline</mat-icon>
+        <h3>Failed to Load Users</h3>
+        <p>{{ error }}</p>
+      </div>
+    }
+
+    @if (!isLoading && !error && dataSource.data.length === 0) {
+      <div class="empty-state mat-elevation-z1">
+        <mat-icon>group_off</mat-icon>
+        <h3>No users found</h3>
+        <p>There are no users with roles to display.</p>
+      </div>
+    }
+
+    @if (!isLoading && !error && dataSource.data.length > 0) {
+      <div class="table-container">
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z1">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+              <td mat-cell *matCellDef="let row; let i = index"> {{ i + 1 }} </td>
+            </ng-container>
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+              <td mat-cell *matCellDef="let row"> {{ row.email }} </td>
+            </ng-container>
+            <ng-container matColumnDef="firstName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> First Name </th>
+              <td mat-cell *matCellDef="let row"> {{ row.firstName || '—' }} </td>
+            </ng-container>
+            <ng-container matColumnDef="lastName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Last Name </th>
+              <td mat-cell *matCellDef="let row"> {{ row.lastName || '—' }} </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+              <td mat-cell *matCellDef="let row"> {{ row.status }} </td>
+            </ng-container>
+            <ng-container matColumnDef="roles">
+              <th mat-header-cell *matHeaderCellDef> Roles </th>
+              <td mat-cell *matCellDef="let row">
+                @if (row.roles?.length) {
+                  <mat-chip-set aria-label="user roles">
+                    @for (role of row.roles; track role) {
+                      <mat-chip class="role-chip">{{ role }}</mat-chip>
+                    }
+                  </mat-chip-set>
+                } @else {
+                  <span class="no-role">—</span>
+                }
+                <ng-template #noRolesTpl>
+                  <span class="no-role">—</span>
+                </ng-template>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              class="table-row"
+              (click)="onUserRowClick(row)"
+              matTooltip="View available and granted permissions"
+              matTooltipPosition="above"
+            ></tr>
+          </table>
+        </div>
+        <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+      </div>
+    }
+
+    <ng-template #userPermissionTemplate let-user>
+      <div class="permission-dialog">
+        <div class="dialog-summary">
+          <div class="summary-item">
+            <span class="label">User</span>
+            <span class="value">{{ user?.email }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Roles</span>
+            @if (user?.roles?.length) {
+              <mat-chip-set aria-label="selected user roles">
+                @for (role of user.roles; track role) {
+                  <mat-chip class="role-chip">{{ role }}</mat-chip>
+                }
+              </mat-chip-set>
+            } @else {
+              <span class="value muted">No role assigned</span>
+            }
+            <ng-template #noDialogRolesTpl>
+              <span class="value muted">No role assigned</span>
+            </ng-template>
+          </div>
+          <div class="summary-item">
+            <span class="label">Granted</span>
+            <span class="value">{{ grantedPermissionCount() }} permissions</span>
+          </div>
+        </div>
+
+        @if (selectedUserPermissions.length > 0) {
+          <div class="bulk-actions-top">
+            <button
+              mat-stroked-button
+              (click)="clearAllPermissions()"
+              [disabled]="isSavingPermissions || !anyPermissionSelected || !hasPermissionChanges"
+              >
+              <mat-icon>clear_all</mat-icon>
+              Clear All
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              (click)="selectAllPermissions()"
+              [disabled]="isSavingPermissions || allPermissionsSelected"
+              >
+              <mat-icon>select_all</mat-icon>
+              Select All
+            </button>
+          </div>
+        }
+
+        @if (selectedUserPermissions.length > 0) {
+          <p class="save-hint">
+            Changes are staged locally. Click Save to apply user-level permission updates.
+          </p>
+        }
+
+        @if (selectedUserPermissions.length > 0) {
+          <div class="permission-table-wrapper">
+            <table mat-table [dataSource]="selectedUserPermissions" class="mat-elevation-z1 permission-table">
+              <ng-container matColumnDef="feature">
+                <th mat-header-cell *matHeaderCellDef> Available Feature </th>
+                <td mat-cell *matCellDef="let row"> {{ row.featureName }} </td>
+              </ng-container>
+              <ng-container matColumnDef="create">
+                <th mat-header-cell *matHeaderCellDef> Create </th>
+                <td mat-cell *matCellDef="let row" class="center-cell">
+                  <mat-checkbox
+                    color="primary"
+                    [checked]="row.isCreate"
+                    (change)="onPermissionToggle(row, 'isCreate', $event.checked)"
+                    [disabled]="isSavingPermissions"
+                  ></mat-checkbox>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="read">
+                <th mat-header-cell *matHeaderCellDef> Read </th>
+                <td mat-cell *matCellDef="let row" class="center-cell">
+                  <mat-checkbox
+                    color="primary"
+                    [checked]="row.isRead"
+                    (change)="onPermissionToggle(row, 'isRead', $event.checked)"
+                    [disabled]="isSavingPermissions"
+                  ></mat-checkbox>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="delete">
+                <th mat-header-cell *matHeaderCellDef> Delete </th>
+                <td mat-cell *matCellDef="let row" class="center-cell">
+                  <mat-checkbox
+                    color="primary"
+                    [checked]="row.isDelete"
+                    (change)="onPermissionToggle(row, 'isDelete', $event.checked)"
+                    [disabled]="isSavingPermissions"
+                  ></mat-checkbox>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="permissionDisplayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: permissionDisplayedColumns"></tr>
+            </table>
+          </div>
+        }
+
+        @if (selectedUserPermissions.length === 0) {
+          <div class="empty-dialog-state">
+            <mat-icon>rule</mat-icon>
+            <h3>No permissions available</h3>
+            <p>This user has no available feature permissions in the current API response.</p>
+          </div>
+        }
+      </div>
+    </ng-template>
+  </mat-card-content>
+</mat-card>

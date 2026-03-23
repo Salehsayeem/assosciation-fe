@@ -1,0 +1,144 @@
+<div class="profile-container">
+  <!-- Error State -->
+  @if (error && !isLoading) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <h2>Error Loading Profile</h2>
+        <p>{{ error }}</p>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Profile Content -->
+  @if (!isLoading && !error && userProfile) {
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <h1 class="welcome-title">Welcome, {{ userProfile!.username.split('@')[0] || 'User' }}</h1>
+      <p class="welcome-subtitle">Manage your account and access information</p>
+    </div>
+    <!-- Status Overview Cards -->
+    <div class="status-overview">
+      <!-- Account Status -->
+      <mat-card class="status-card">
+        <mat-card-content>
+          <div class="status-header">
+            <mat-icon [ngClass]="{'status-active': userProfile.isActive, 'status-inactive': !userProfile.isActive}">
+              {{ userProfile.isActive ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            <span class="status-label">Account Status</span>
+          </div>
+          <div class="status-value" [ngClass]="userProfile!.status.toLowerCase()">
+            {{ userProfile!.status | uppercase }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <!-- Email Verification -->
+      <mat-card class="status-card">
+        <mat-card-content>
+          <div class="status-header">
+            <mat-icon [ngClass]="{'verified': userProfile.emailVerified, 'unverified': !userProfile.emailVerified}">
+              {{ userProfile.emailVerified ? 'verified_user' : 'mail' }}
+            </mat-icon>
+            <span class="status-label">Email Verified</span>
+          </div>
+          <div class="status-value" [ngClass]="userProfile.emailVerified ? 'verified' : 'unverified'">
+            {{ userProfile.emailVerified ? 'Yes' : 'No' }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <!-- Phone Verification -->
+      <mat-card class="status-card">
+        <mat-card-content>
+          <div class="status-header">
+            <mat-icon [ngClass]="{'verified': userProfile.phoneVerified, 'unverified': !userProfile.phoneVerified}">
+              {{ userProfile.phoneVerified ? 'verified_user' : 'phone' }}
+            </mat-icon>
+            <span class="status-label">Phone Verified</span>
+          </div>
+          <div class="status-value" [ngClass]="userProfile.phoneVerified ? 'verified' : 'unverified'">
+            {{ userProfile.phoneVerified ? 'Yes' : 'No' }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <!-- User Information Card -->
+    <mat-card class="info-card">
+      <mat-card-header class="info-header">
+        <div class="avatar-section">
+          <div class="avatar">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="user-header-info">
+            <h2>{{ userProfile.email }}</h2>
+            <p>{{ userProfile.username }}</p>
+          </div>
+        </div>
+      </mat-card-header>
+      <mat-divider></mat-divider>
+      <mat-card-content class="info-content">
+        <div class="info-grid">
+          <!-- User ID -->
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>badge</mat-icon>
+              User ID
+            </span>
+            <span class="info-value" title="{{ userProfile.userId }}">
+              {{ userProfile.userId }}
+            </span>
+          </div>
+          <!-- Email -->
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>email</mat-icon>
+              Email Address
+            </span>
+            <span class="info-value">{{ userProfile.email }}</span>
+          </div>
+          <!-- Application ID -->
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>app_registration</mat-icon>
+              Application ID
+            </span>
+            <span class="info-value">{{ userProfile.applicationId }}</span>
+          </div>
+          <!-- Username -->
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>person</mat-icon>
+              Username
+            </span>
+            <span class="info-value">{{ userProfile.username }}</span>
+          </div>
+          <!-- Account Created -->
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>calendar_today</mat-icon>
+              Account Created
+            </span>
+            <span class="info-value">
+              {{ userProfile.createdAt | date: 'MMM dd, yyyy' }}
+              <br>
+                <small>{{ userProfile.createdAt | date: 'HH:mm:ss' }}</small>
+              </span>
+            </div>
+            <!-- Last Updated -->
+            <div class="info-item">
+              <span class="info-label">
+                <mat-icon>update</mat-icon>
+                Last Updated
+              </span>
+              <span class="info-value">
+                {{ userProfile.updatedAt | date: 'MMM dd, yyyy' }}
+                <br>
+                  <small>{{ userProfile.updatedAt | date: 'HH:mm:ss' }}</small>
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+

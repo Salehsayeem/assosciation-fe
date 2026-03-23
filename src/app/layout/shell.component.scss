@@ -1,0 +1,148 @@
+// Import global color variables from styles.scss
+@use '../../styles' as *;
+
+$sidebar-width: 250px;
+$header-height: 64px;
+$mobile-breakpoint: 960px;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: $background-color;
+}
+
+.sidenav-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  margin-top: 0;
+  background-color: $background-color;
+}
+
+.sidebar {
+  width: $sidebar-width;
+  background: $card-background;
+  border-right: 1px solid $border-color;
+  overflow-y: auto;
+  z-index: 999;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: $background-color;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  
+  @media (max-width: 960px) {
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 600px) {
+    padding: 1rem;
+  }
+}
+
+// Scrollbar styling for main content
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+// Animation for sidenav
+::ng-deep {
+  .mat-drawer-inner-container {
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+
+  .mat-toolbar-row {
+    height: $header-height !important;
+  }
+
+  // Adjust sidenav styles for mobile vs desktop
+  @media (min-width: $mobile-breakpoint) {
+    .mat-drawer-side {
+      border-right: 1px solid $border-color;
+    }
+  }
+
+  @media (max-width: 959px) {
+    .mat-drawer-over {
+      z-index: 999;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 960px) {
+  .sidebar {
+    width: $sidebar-width;
+  }
+
+  .main-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .sidenav-container {
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+}

@@ -1,1 +1,160 @@
 /* You can add global styles to this file, and also import other style files */
+
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+// ============================================
+// CENTRALIZED COLOR PALETTE
+// ============================================
+$primary-color: #673ab7;
+$primary-light: #9c27b0;
+$primary-dark: #4527a0;
+$accent-color: #ff5722;
+$text-primary: #2c3e50;
+$text-secondary: #7f8c8d;
+$background-color: #f5f5f5;
+$card-background: #ffffff;
+$border-color: #e0e0e0;
+$shadow-color: rgba(0, 0, 0, 0.1);
+
+// Feature card color palette
+$feature-colors: (
+  #FF6B6B, #4ECDC4, #45B7D1, #FFA07A, #98D8C8,
+  #F7DC6F, #BB8FCE, #85C1E2, #F8B195, #C1EF65
+);
+
+// ============================================
+// MATERIAL THEME SETUP
+// ============================================
+$my-primary: mat.m2-define-palette(mat.$m2-indigo-palette);
+$my-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
+$my-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$my-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $my-primary,
+    accent: $my-accent,
+    warn: $my-warn,
+  ),
+  typography: mat.m2-define-typography-config(),
+  density: 0,
+));
+
+@include mat.all-component-themes($my-theme);
+
+// ============================================
+// BOTTOM SHEET OVERRIDES
+// ============================================
+.role-permissions-bottom-sheet {
+  &.mat-bottom-sheet-container {
+    padding: 0 !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 72vh !important;
+    overflow: hidden !important;
+  }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: $background-color;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  color: $text-primary;
+}
+
+// ============================================
+// BOTTOM DRAWER STYLES
+// ============================================
+
+// Backdrop overlay
+.cdk-overlay-container {
+  .cdk-overlay-backdrop.mat-overlay-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+}
+
+// Bottom drawer panel styles
+.cdk-overlay-pane.bottom-drawer {
+  max-width: 100vw !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-end !important;
+  padding: 0 16px 8px !important;
+
+  @media (max-width: 640px) {
+    padding: 0 !important;
+  }
+
+  .mat-mdc-dialog-container {
+    width: 100% !important;
+    max-width: 720px !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 0 !important;
+    box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.16), 0 -2px 10px rgba(0, 0, 0, 0.08) !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    min-height: 260px !important;
+    max-height: 85vh !important;
+    height: clamp(320px, 70vh, 85vh) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    animation: slideUpDrawer 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+    @media (max-width: 600px) {
+      max-width: 100% !important;
+      border-radius: 20px 20px 0 0 !important;
+      max-height: 90vh !important;
+      height: clamp(320px, 75vh, 90vh) !important;
+    }
+
+    &.drawer-closing {
+      animation: slideDownDrawer 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    }
+
+    // Ensure proper structure
+    .mat-mdc-dialog-surface {
+      display: flex !important;
+      flex-direction: column !important;
+      max-height: inherit !important;
+      overflow: hidden !important;
+    }
+  }
+}
+
+// Animations
+@keyframes slideUpDrawer {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Closing animation
+.cdk-overlay-pane.bottom-drawer.mat-mdc-dialog-container-exit {
+  animation: slideDownDrawer 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+@keyframes slideDownDrawer {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}

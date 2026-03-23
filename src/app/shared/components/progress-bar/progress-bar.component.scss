@@ -1,0 +1,13 @@
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 99998;
+}
+
+::ng-deep .mat-mdc-progress-bar {
+  top: 0 !important;
+}

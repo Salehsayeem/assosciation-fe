@@ -1,0 +1,31 @@
+@if (isAuthenticated) {
+  <app-progress-bar></app-progress-bar>
+  <app-dashboard-header
+    [sidebarOpen]="sidenavOpen()"
+    (toggleSidebar)="toggleSidebar()"
+  ></app-dashboard-header>
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #sidenav
+      [mode]="isMobile() ? 'over' : 'side'"
+      [opened]="sidenavOpen()"
+      (closed)="closeSidebar()"
+      class="sidebar"
+      [fixedInViewport]="isMobile()"
+      [fixedTopGap]="isMobile() ? 64 : 0"
+      >
+      <app-sidebar-nav (closeSidebar)="closeSidebar()"></app-sidebar-nav>
+    </mat-sidenav>
+    <mat-sidenav-content class="content">
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+}
+
+@if (!isAuthenticated) {
+  <app-progress-bar></app-progress-bar>
+  <router-outlet></router-outlet>
+}
+

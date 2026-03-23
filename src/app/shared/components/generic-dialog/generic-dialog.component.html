@@ -1,0 +1,57 @@
+<div class="drawer-handle" #drawerHandle></div>
+
+<h2 mat-dialog-title>{{ config.title }}</h2>
+<br>
+  <mat-dialog-content>
+    <!-- Text Content -->
+    @if (config.contentType === 'text') {
+      <div class="text-content">
+        {{ config.content }}
+      </div>
+    }
+
+    <!-- Template Content -->
+    @if (config.contentType === 'template' && getTemplate(config.content); as tpl) {
+      <ng-container *ngTemplateOutlet="tpl; context: { $implicit: config.customData }"></ng-container>
+    }
+
+    <!-- Custom Content (for components to render their own data) -->
+    @if (config.contentType === 'custom') {
+      <div class="custom-content">
+        <ng-content></ng-content>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions [align]="config.buttonAlign || 'end'">
+    @for (button of buttons; track $index) {
+      <button
+        mat-button
+        [color]="button.color"
+        [disabled]="button.disabled || button.loading"
+        (click)="onButtonClick(button, $index)">
+        @if (button.loading) {
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="16"
+            strokeWidth="3"
+            class="button-loading-spinner">
+          </mat-progress-spinner>
+        }
+        @if (!button.loading && button.icon) {
+          <mat-icon style="margin-right: 6px;">{{ button.icon }}</mat-icon>
+        }
+        {{ button.label }}
+      </button>
+    }
+  </mat-dialog-actions>
+
+  @if (config.footer) {
+    <div class="dialog-footer">
+      @if (getTemplate(config.footer); as footerTpl) {
+        <ng-container *ngTemplateOutlet="footerTpl"></ng-container>
+      } @else {
+        {{ config.footer }}
+      }
+    </div>
+  }

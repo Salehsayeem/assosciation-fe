@@ -1,0 +1,362 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Users</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (error && !isLoading) {
+      <mat-card class="error-card">
+        <mat-card-content>
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <br>
+      @if (!isLoading && !error) {
+        <div class="table-actions">
+          <mat-form-field appearance="outline">
+            <mat-label>Filter users</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Search by name, email, role" />
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="openAddUserDialog()">Add User</button>
+        </div>
+      }
+
+      @if (!isLoading && !error && dataSource.data.length === 0) {
+        <div class="empty-state mat-elevation-z1">
+          <mat-icon>group_off</mat-icon>
+          <h3>No users found</h3>
+          <p>Get started by adding your first user.</p>
+          <button mat-raised-button color="primary" (click)="openAddUserDialog()">Add User</button>
+        </div>
+      }
+
+      @if (!isLoading && !error && dataSource.data.length > 0) {
+        <div class="table-container">
+          <div class="table-wrapper">
+            <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z1">
+              <!-- index column   -->
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+                <td mat-cell *matCellDef="let row; let i = index"> {{ i + 1 }} </td>
+              </ng-container>
+              <!-- Email Column -->
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+                <td mat-cell *matCellDef="let row"> {{ row.email }} </td>
+              </ng-container>
+              <!-- First Name Column -->
+              <ng-container matColumnDef="firstName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> First Name </th>
+                <td mat-cell *matCellDef="let row"> {{ row.firstName || '—' }} </td>
+              </ng-container>
+              <!-- Last Name Column -->
+              <ng-container matColumnDef="lastName">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Last Name </th>
+                <td mat-cell *matCellDef="let row"> {{ row.lastName || '—' }} </td>
+              </ng-container>
+              <!-- Phone Number Column -->
+              <ng-container matColumnDef="phoneNumber">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Phone Number </th>
+                <td mat-cell *matCellDef="let row"> {{ row.phoneNumber || '—' }} </td>
+              </ng-container>
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+                <td mat-cell *matCellDef="let row"> {{ row.status }} </td>
+              </ng-container>
+              <!-- UpdatedAt Column -->
+              <ng-container matColumnDef="updatedAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Updated </th>
+                <td mat-cell *matCellDef="let row"> {{ row.updatedAt | relativeTime }} </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let row" class="actions-cell">
+                  <button mat-icon-button color="warn" aria-label="Delete user"
+                    (click)="$event.stopPropagation(); openDeleteUserDialog(row)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row" (click)="onEditUser(row)"></tr>
+            </table>
+          </div>
+          <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+        </div>
+      }
+
+      <ng-template #userDetailsTemplate let-user>
+        <div class="user-dialog-grid">
+          <mat-card class="detail-card">
+            <mat-card-header>
+              <mat-card-title>User Profile</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="user-detail-grid">
+                <div class="detail">
+                  <span class="label">Username</span>
+                  <span class="value">{{ user.username }}</span>
+                </div>
+                <div class="detail">
+                  <span class="label">Email</span>
+                  <span class="value">{{ user.email }}</span>
+                </div>
+                <div class="detail">
+                  <span class="label">Status</span>
+                  <span class="value">{{ user.status }}</span>
+                </div>
+                <div class="detail">
+                  <span class="label">Email Verified</span>
+                  <span class="value">
+                    <mat-icon class="verify-icon" [class.verified]="user.emailVerified">
+                      {{ user.emailVerified ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                  </span>
+                </div>
+                <div class="detail">
+                  <span class="label">Phone Verified</span>
+                  <span class="value">
+                    <mat-icon class="verify-icon" [class.verified]="user.phoneVerified">
+                      {{ user.phoneVerified ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                  </span>
+                </div>
+                <div class="detail">
+                  <span class="label">Role</span>
+                  <span class="value">
+                    <div class="roles-container">
+                      @if (user.roles) {
+                        <mat-chip disabled>{{ user.roles }}</mat-chip>
+                      }
+                      @if (!user.roles) {
+                        <span class="empty-text">No role assigned</span>
+                      }
+                    </div>
+                  </span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </ng-template>
+
+      <!-- Edit User Template (GenericDialog content) -->
+      <ng-template #editUserTemplate>
+        <div class="edit-user-container">
+          <!-- User Overview (Always Readonly) -->
+          <div class="user-overview">
+            <div class="overview-row">
+              <span class="overview-label">Username</span>
+              <span class="overview-value">{{ currentUserDetails?.username }}</span>
+            </div>
+            <div class="overview-row">
+              <span class="overview-label">Email Verified</span>
+              <mat-icon class="verify-icon" [class.verified]="currentUserDetails?.emailVerified">
+                {{ currentUserDetails?.emailVerified ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+            </div>
+            <div class="overview-row">
+              <span class="overview-label">Phone Verified</span>
+              <mat-icon class="verify-icon" [class.verified]="currentUserDetails?.phoneVerified">
+                {{ currentUserDetails?.phoneVerified ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+            </div>
+            <div class="overview-row">
+              <span class="overview-label">Assigned Role</span>
+              <div class="roles-container">
+                @if (currentUserDetails?.roles) {
+                  <mat-chip>{{ currentUserDetails?.roles }}</mat-chip>
+                }
+                @if (!currentUserDetails?.roles) {
+                  <span class="empty-text">No role assigned</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Editable Section -->
+          <!-- Feature Permissions (Readonly) -->
+          <div class="permissions-section">
+            <div class="edit-section-header">
+              <h3>Feature Permissions</h3>
+            </div>
+            @if (featureList.length) {
+              <div class="perm-table-wrapper">
+                <table mat-table [dataSource]="featureList" class="mat-elevation-z1 perm-table">
+                  <!-- Feature Column -->
+                  <ng-container matColumnDef="feature">
+                    <th mat-header-cell *matHeaderCellDef> Feature </th>
+                    <td mat-cell *matCellDef="let feat"> {{ feat | uppercase }} </td>
+                  </ng-container>
+                  <!-- Create Column -->
+                  <ng-container matColumnDef="create">
+                    <th mat-header-cell *matHeaderCellDef> Create </th>
+                    <td mat-cell *matCellDef="let feat" class="center-cell">
+                      <mat-checkbox disabled [checked]="hasPermission(currentUserDetails, feat, 'CREATE')"></mat-checkbox>
+                    </td>
+                  </ng-container>
+                  <!-- Read Column -->
+                  <ng-container matColumnDef="read">
+                    <th mat-header-cell *matHeaderCellDef> Read </th>
+                    <td mat-cell *matCellDef="let feat" class="center-cell">
+                      <mat-checkbox disabled [checked]="hasPermission(currentUserDetails, feat, 'READ')"></mat-checkbox>
+                    </td>
+                  </ng-container>
+                  <!-- Delete Column -->
+                  <ng-container matColumnDef="delete">
+                    <th mat-header-cell *matHeaderCellDef> Delete </th>
+                    <td mat-cell *matCellDef="let feat" class="center-cell">
+                      <mat-checkbox disabled [checked]="hasPermission(currentUserDetails, feat, 'DELETE')"></mat-checkbox>
+                    </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="['feature', 'create', 'read', 'delete']"></tr>
+                  <tr mat-row *matRowDef="let feat; columns: ['feature', 'create', 'read', 'delete']"></tr>
+                </table>
+              </div>
+            } @else {
+              <div class="empty-text">No feature permissions available</div>
+            }
+            <ng-template #noFeaturePerms>
+              <div class="empty-text">No feature permissions available</div>
+            </ng-template>
+          </div>
+
+          <!-- Editable Section -->
+          <div class="edit-section">
+            <div class="edit-section-header">
+              <h3>Editable Fields</h3>
+              <button type="button" mat-icon-button [color]="editMode ? 'warn' : 'primary'" (click)="toggleEditMode()"
+                [matTooltip]="editMode ? 'Cancel editing' : 'Edit user details'">
+                <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
+              </button>
+            </div>
+
+            <form [formGroup]="editForm" class="form-grid">
+              <!-- Email (Editable) -->
+              <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" [readonly]="!editMode" />
+                @if (editForm.get('email')?.hasError('required') && editForm.get('email')?.touched) {
+                  <mat-error>
+                    Email is required
+                  </mat-error>
+                }
+                @if (editForm.get('email')?.hasError('email') && editForm.get('email')?.touched) {
+                  <mat-error>
+                    Enter a valid email address
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- First Name (Editable) -->
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" [readonly]="!editMode" />
+              </mat-form-field>
+
+              <!-- Last Name (Editable) -->
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" [readonly]="!editMode" />
+              </mat-form-field>
+
+              <!-- Phone Number (Editable) -->
+              <mat-form-field appearance="outline">
+                <mat-label>Phone Number</mat-label>
+                <input matInput formControlName="phoneNumber" [readonly]="!editMode" />
+                @if (editForm.get('phoneNumber')?.hasError('minlength') && editForm.get('phoneNumber')?.touched) {
+                  <mat-error
+                    >
+                    Phone number must be at least 10 digits
+                  </mat-error>
+                }
+              </mat-form-field>
+              <!-- Status (Editable) -->
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status" [compareWith]="compareStatus">
+                  @if (!statuses.length) {
+                    <mat-option disabled>Statuses unavailable</mat-option>
+                  }
+                  @for (s of statuses; track s) {
+                    <mat-option [value]="s">{{ s }}</mat-option>
+                  }
+                </mat-select>
+                @if (editForm.get('status')?.hasError('required') && editForm.get('status')?.touched) {
+                  <mat-error>
+                    Status is required
+                  </mat-error>
+                }
+              </mat-form-field>
+            </form>
+          </div>
+        </div>
+      </ng-template>
+
+      <!-- Add User Template (GenericDialog content) -->
+      <ng-template #addUserTemplate>
+        <form [formGroup]="addForm" class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" />
+            @if (addForm.get('email')?.hasError('required') && addForm.get('email')?.touched) {
+              <mat-error>
+                Email is required
+              </mat-error>
+            }
+            @if (addForm.get('email')?.hasError('email') && addForm.get('email')?.touched) {
+              <mat-error>
+                Enter a valid email address
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="roleId">
+              @if (rolesLoading) {
+                <mat-option disabled>Loading roles...</mat-option>
+              }
+              @if (!rolesLoading && roles.length === 0) {
+                <mat-option disabled>No roles available</mat-option>
+              }
+              @for (role of roles; track role) {
+                <mat-option [value]="role.roleId">{{ role.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Phone Number</mat-label>
+            <input matInput formControlName="phoneNumber" />
+            @if (addForm.get('phoneNumber')?.hasError('minlength')) {
+              <mat-error>
+                Phone number must be at least 10 digits
+              </mat-error>
+            }
+          </mat-form-field>
+        </form>
+      </ng-template>
+
+      <!-- Delete User Template (GenericDialog content) -->
+      <ng-template #deleteUserTemplate let-user>
+        <div class="delete-confirmation">
+          <p class="warning-text">Are you sure you want to delete user <strong>{{ user.username }}</strong>?</p>
+          <p class="info-text">This action cannot be undone.</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
